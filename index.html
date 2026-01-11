@@ -3,360 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ribbon XML Builder (Sortable)</title>
+    <title>Ribbon XML Builder</title>
     <style>
-        :root { --primary: #217346; --bg: #f3f2f1; --border: #c8c6c4; --blue: #0078d4; --red: #d93025; --gray: #666; }
+        :root { --primary: #217346; --bg: #f3f2f1; --border: #c8c6c4; --blue: #0078d4; --red: #d93025; }
         
-        body { 
-            font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; 
-            display: flex; gap: 15px; height: 100vh; box-sizing: border-box; overflow: hidden; 
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; gap: 10px; height: 100vh; box-sizing: border-box; overflow: hidden; }
         
-        /* LAYOUT */
-        .editor-panel { 
-            flex: 1; background: white; padding: 20px; border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column; border: 1px solid var(--border);
-        }
-        .code-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; height: 100%; }
+        /* --- PANEL TRÁI (50%) --- */
+        .editor-panel { flex: 1; background: white; padding: 15px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column; border: 1px solid var(--border); }
         
-        textarea { 
-            flex: 1; width: 100%; font-family: 'Consolas', monospace; padding: 15px; 
-            border: 1px solid #333; border-radius: 8px; resize: none; 
-            background: #1e1e1e; color: #dcdcdc; font-size: 14px; line-height: 1.5; box-sizing: border-box;
-        }
+        label { font-size: 11px; font-weight: 700; color: #555; display: block; margin-bottom: 3px; text-transform: uppercase; }
+        .group-block { border: 1px solid #e0e0e0; padding: 10px; margin-bottom: 15px; background: #fff; border-left: 4px solid var(--primary); border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         
-        /* UI ELEMENTS */
-        .group-block { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #fff; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.3s; }
-        .group-block:hover { background: #fafafa; }
+        /* --- CHỈNH SỬA GRID LAYOUT TẠI ĐÂY --- */
+        /* Cấu trúc: [Move] [ID] [Label] [ICON (To)] [Action] [Size (Bé)] [Del] */
+        .btn-header { display: grid; grid-template-columns: 20px 0.5fr 0.9fr 1.8fr 0.8fr 0.4fr 20px; gap: 5px; padding: 0 5px; margin-bottom: 5px; font-size: 10px; color: #888; font-weight: bold; text-align: center; }
+        .btn-item { display: grid; grid-template-columns: 20px 0.5fr 0.9fr 1.8fr 0.8fr 0.4fr 20px; gap: 5px; margin-bottom: 4px; align-items: center; padding: 5px; background: #f9f9f9; border: 1px solid #eee; border-radius: 3px; }
         
-        .btn-item { 
-            display: grid; grid-template-columns: 30px 1fr 1.2fr 1.6fr 1fr 0.8fr 30px; gap: 5px; 
-            margin-bottom: 5px; align-items: center; padding: 6px; background: #f8f9fa; 
-            border: 1px solid #eee; border-radius: 4px; 
-        }
-        .btn-item:hover { border-color: #ccc; }
+        input, select { padding: 5px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; font-size: 12px; border-radius: 3px; }
+        input:focus { border-color: var(--blue); outline: 1px solid var(--blue); }
         
-        /* INPUTS & BUTTONS */
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 0.9em; }
-        input:focus { border-color: var(--blue); outline: none; }
+        .btn-move { padding: 0; width: 100%; height: 10px; font-size: 8px; cursor: pointer; border: 1px solid #ccc; background:#eee; display:block; margin-bottom:1px;}
+        .btn-del { border:none; background:transparent; color:#999; font-weight:bold; cursor:pointer;}
+        .btn-del:hover { color: var(--red); }
+        .btn-add { width:100%; padding:8px; background:#eff6fc; color:var(--blue); border:1px dashed var(--blue); cursor:pointer; font-weight:bold; font-size:12px; margin-top:5px; border-radius: 4px; }
+        .btn-add:hover { background: #deecf9; }
 
-        button { cursor: pointer; padding: 8px 12px; border: none; border-radius: 4px; font-weight: 600; white-space: nowrap; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
+        /* --- PANEL PHẢI (50%) --- */
+        .preview-panel { flex: 1; display: flex; flex-direction: column; height: 100%; background: #fff; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
+        .tab-header { display: flex; background: #f3f2f1; border-bottom: 1px solid #ccc; height: 35px; }
+        .tab-btn { padding: 0 20px; border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600; color: #666; height: 100%; }
+        .tab-btn.active { background: #fff; color: var(--primary); border-top: 3px solid var(--primary); border-bottom: 1px solid #fff; font-weight: 700;}
+        .tab-content { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+        .tab-content.active { display: flex; }
 
-        .btn-add-group { background: var(--primary); color: white; margin-top: 10px; width: 100%; padding: 10px; }
-        .btn-add-btn { background: #fff; border: 1px dashed var(--blue); color: var(--blue); font-size: 0.85em; margin-top: 5px; width: 100%; }
-        .btn-del { background: var(--red); color: white; padding: 6px; font-size: 0.8em; min-width: 30px;}
-        
-        /* MOVE CONTROLS */
-        .move-controls { display: flex; flex-direction: column; gap: 2px; }
-        .btn-move { padding: 0; width: 20px; height: 14px; font-size: 10px; line-height: 10px; background: #e1dfdd; color: #333; border: 1px solid #ccc; }
-        .btn-move:hover { background: var(--blue); color: white; border-color: var(--blue); }
+        /* Preview Area */
+        #previewArea { background: #f3f3f3; flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #ccc; overflow-x: auto; }
+        .ribbon-tab-bar { background: #217346; color: white; padding: 0 10px; font-size: 12px; display: flex; align-items: flex-end; height: 30px; gap: 15px; width: 100%; box-sizing: border-box; }
+        .ribbon-tab-active { background: #f3f3f3; color: #217346; padding: 6px 15px; font-weight: 600; border-radius: 4px 4px 0 0; margin-bottom: 0; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        .ribbon-body { background: #f3f3f3; height: 92px; display: flex; padding: 3px 5px 0 5px; box-sizing: border-box; }
+        .r-group { display: flex; flex-direction: column; border-right: 1px solid #dcdcdc; padding: 0 2px; height: 100%; }
+        .r-group-content { height: 72px; display: flex; align-items: flex-start; gap: 2px; padding: 0 3px; }
+        .r-group-label { height: 15px; font-size: 11px; color: #767676; text-align: center; white-space: nowrap; overflow: hidden; width: 100%; margin-top: auto; padding-bottom: 2px; }
 
-        .btn-action-row { display: flex; gap: 10px; margin-bottom: 5px; }
-        .btn-gen { background: var(--blue); color: white; flex: 2; padding: 12px; font-size: 1.1em; }
-        .btn-reverse { background: #d83b01; color: white; flex: 1; padding: 12px; font-size: 1.1em; }
-        .btn-reset { background: #666; color: white; flex: 0.5; padding: 12px; font-size: 1.1em; }
+        .r-btn-large { display: flex; flex-direction: column; align-items: center; width: 50px; height: 68px; margin-top: 1px; border: 1px solid transparent; border-radius: 3px; cursor: default; }
+        .r-btn-large:hover { background: #cce8ff; border-color: #99d1ff; }
+        .r-btn-large img { width: 32px; height: 32px; margin-top: 3px; margin-bottom: 2px; object-fit: contain; }
+        .r-btn-large span { font-size: 11px; color: #333; text-align: center; line-height: 1.1; width: 100%; overflow: hidden; padding: 0 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        label { font-size: 0.75em; color: #666; font-weight: bold; margin-bottom: 4px; display: block; text-transform: uppercase; }
-        h2 { margin: 0; color: #333; font-size: 1.5em; }
+        .r-column { display: flex; flex-direction: column; height: 68px; margin-top: 1px; width: 120px; gap: 0; }
+        .r-btn-normal { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 3px; margin-bottom: 1px; border: 1px solid transparent; border-radius: 3px; cursor: default; }
+        .r-btn-normal:hover { background: #cce8ff; border-color: #99d1ff; }
+        .r-btn-normal img { width: 16px; height: 16px; object-fit: contain; }
+        .r-btn-normal span { font-size: 11px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 22px; }
+
+        #xmlContent { flex: 1; border: none; padding: 15px; font-family: monospace; background: #2d2d2d; color: #ddd; resize: none; font-size: 13px; line-height: 1.4; }
+        .code-actions { background: #e1e1e1; padding: 8px; display: flex; gap: 10px; }
+        .btn-act { flex:1; padding:10px; border:none; cursor:pointer; font-weight:bold; font-size:13px; color:white; border-radius: 4px;}
         
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .link-tool { text-decoration: none; background: #fff; padding: 6px 12px; border-radius: 20px; color: #333; font-size: 0.85em; font-weight: bold; border: 1px solid #ccc; display: flex; align-items: center; gap: 5px; }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="editor-panel" id="mainEditor">
-        <div class="header-row">
-            <h2>Ribbon Config</h2>
-            <a href="https://bert-toolkit.com/imagemso-list.html" target="_blank" class="link-tool">🔍 Tra cứu Icon</a>
+    <div class="editor-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <strong style="color:#217346; font-size: 1.2em;">RIBBON CONFIG</strong>
+            <a href="https://bettersolutions.com/vba/ribbon/face-ids-2016.htm" target="_blank" style="font-size:11px; text-decoration:none; background: #eee; padding: 5px 10px; border-radius: 10px; color: #333;">🔍 Tra Icon</a>
         </div>
-
-        <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #e6f2ea; padding: 15px; border-radius: 8px; border: 1px solid #cce5d5;">
-            <div><label>Tab ID</label><input type="text" id="tabId" value="tabNNTools" style="font-weight:bold;"></div>
-            <div><label>Tab Label</label><input type="text" id="tabLabel" value="NNTools" style="font-weight:bold;"></div>
+        
+        <div style="background:#f4fdf7; padding:10px; margin-bottom:15px; border:1px solid #cce5d5; border-radius: 4px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div><label>Tab ID</label><input type="text" id="tabId" value="tabNNTools" oninput="saveData()"></div>
+                <div><label>Tab Label (Tên hiển thị)</label><input type="text" id="tabLabel" value="NNTools" oninput="saveData()"></div>
+            </div>
         </div>
 
         <div id="groupsContainer"></div>
-
-        <button class="btn-add-group" onclick="addGroup()">+ THÊM GROUP MỚI</button>
+        <button class="btn-add" onclick="addGroup()" style="background:var(--primary); color:white; padding: 12px; font-size: 14px;">+ THÊM GROUP MỚI</button>
     </div>
 
-    <div class="code-panel">
-        <div class="btn-action-row">
-            <button class="btn-gen" onclick="generateXML()">⬇️ XUẤT CODE XML</button>
-            <button class="btn-reverse" onclick="importXML()">⬆️ DỊCH NGƯỢC (IMPORT)</button>
-            <button class="btn-reset" onclick="resetData()" title="Xóa hết dữ liệu và làm mới">🗑 RESET</button>
+    <div class="preview-panel">
+        <div class="tab-header">
+            <button class="tab-btn active" onclick="switchTab('preview')">Live Preview</button>
+            <button class="tab-btn" onclick="switchTab('code')">XML Code</button>
         </div>
-        <textarea id="xmlContent" placeholder="Paste mã XML vào đây để dịch ngược, hoặc bấm Xuất Code để lấy mã..."></textarea>
+
+        <div id="tab-preview" class="tab-content active">
+            <div id="previewArea"></div>
+            <div style="background:#fff; padding:15px; border-top:1px solid #eee; overflow-y: auto;">
+                <p style="margin:0 0 5px 0; font-size:12px; color:#333; font-weight: bold;">HƯỚNG DẪN:</p>
+                <ul style="margin:0; padding-left: 20px; font-size:11px; color:#666; line-height: 1.5;">
+                    <li><strong>ID:</strong> Tự động sinh ra khi nhập Label.</li>
+                    <li><strong>Icon:</strong> Chọn loại <em>Mso</em> (Excel có sẵn) hoặc <em>Img</em> (Ảnh riêng). Nhập tên vào ô bên cạnh.</li>
+                    <li><strong>Size:</strong> Chọn <em>Large</em> hoặc <em>Normal</em>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="tab-code" class="tab-content">
+            <textarea id="xmlContent"></textarea>
+            <div class="code-actions">
+                <button class="btn-act" style="background:var(--blue)" onclick="generateXML()">⬇️ Cập Nhật Code</button>
+                <button class="btn-act" style="background:#d83b01" onclick="importXML()">⬆️ Import XML</button>
+                <button class="btn-act" style="background:#555" onclick="resetData()">🗑 Reset</button>
+            </div>
+        </div>
     </div>
 
 <script>
-    const STORAGE_KEY = 'ribbon_tool_data_v3'; // Đổi key mới để tránh xung đột
+    const STORAGE_KEY = 'ribbon_fixed_layout_v8';
 
-    // --- 1. TIỆN ÍCH CHUỖI ---
-    function convertToId(str, prefix) {
+    function convertToId(str, pre) {
         if (!str) return "";
-        str = str.toLowerCase()
-            .replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a")
-            .replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e")
-            .replace(/ì|í|ị|ỉ|ĩ/g, "i")
-            .replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o")
-            .replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u")
-            .replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y").replace(/đ/g, "d")
-            .replace(/[^a-z0-9\s]/g, "").replace(/(?:^|\s)\S/g, a => a.toUpperCase()).replace(/\s+/g, "");
-        return prefix + str;
+        str = str.toLowerCase().replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g,"a").replace(/[èéẹẻẽêềếệểễ]/g,"e").replace(/[ìíịỉĩ]/g,"i").replace(/[òóọỏõôồốộổỗơờớợởỡ]/g,"o").replace(/[ùúụủũưừứựửữ]/g,"u").replace(/[ỳýỵỷỹ]/g,"y").replace(/đ/g,"d").replace(/[^a-z0-9\s]/g,"").replace(/(?:^|\s)\S/g,a=>a.toUpperCase()).replace(/\s+/g,"");
+        return pre + str;
     }
 
-    function onLabelChange(input, type) {
-        const parent = input.closest(type === 'btn' ? '.btn-item' : '.group-block');
-        const idInput = parent.querySelector(type === 'btn' ? '.b-id' : '.g-id');
-        const prefix = type === 'btn' ? 'btn' : 'grp';
-        if(idInput.value === "" || idInput.value.startsWith(prefix)) {
-             idInput.value = convertToId(input.value, prefix);
-        }
-        saveData();
-    }
-
-    // --- 2. LOGIC DI CHUYỂN (MỚI) ---
-    function moveUp(btn, type) {
-        const item = btn.closest(type === 'grp' ? '.group-block' : '.btn-item');
-        const prevItem = item.previousElementSibling;
-        // Kiểm tra xem phần tử phía trước có phải là item cùng loại không
-        if (prevItem && prevItem.classList.contains(type === 'grp' ? 'group-block' : 'btn-item')) {
-            item.parentNode.insertBefore(item, prevItem);
-            saveData();
+    function switchTab(mode) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if(mode === 'preview') {
+            document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('tab-preview').classList.add('active');
+            renderPreview();
+        } else {
+            document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('tab-code').classList.add('active');
+            generateXML();
         }
     }
 
-    function moveDown(btn, type) {
-        const item = btn.closest(type === 'grp' ? '.group-block' : '.btn-item');
-        const nextItem = item.nextElementSibling;
-        if (nextItem && nextItem.classList.contains(type === 'grp' ? 'group-block' : 'btn-item')) {
-            item.parentNode.insertBefore(nextItem, item);
-            saveData();
-        }
+    function getData() {
+        const data = { tabId: document.getElementById('tabId').value, tabLabel: document.getElementById('tabLabel').value, groups: [] };
+        document.querySelectorAll('.group-block').forEach(g => {
+            const grp = { id: g.querySelector('.g-id').value, label: g.querySelector('.g-label').value, buttons: [] };
+            g.querySelectorAll('.btn-item').forEach(b => {
+                grp.buttons.push({
+                    id: b.querySelector('.b-id').value, label: b.querySelector('.b-label').value,
+                    imgType: b.querySelector('.b-img-type').value, imgVal: b.querySelector('.b-img-val').value,
+                    onAction: b.querySelector('.b-act').value, size: b.querySelector('.b-size').value
+                });
+            });
+            data.groups.push(grp);
+        });
+        return data;
     }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(getData())); if(document.getElementById('tab-preview').classList.contains('active')) renderPreview(); }
 
-    // --- 3. RENDER GIAO DIỆN ---
     const container = document.getElementById('groupsContainer');
 
-    function renderBtnHTML(btnData = {}) {
-        let imgType = 'imageMso';
-        let imgVal = btnData.imageMso || '';
-        if (btnData.image) { imgType = 'image'; imgVal = btnData.image; }
-        const isCustom = imgType === 'image';
-
-        return `
-            <div class="btn-item">
-                <div class="move-controls">
-                    <button class="btn-move" onclick="moveUp(this, 'btn')" title="Lên">▲</button>
-                    <button class="btn-move" onclick="moveDown(this, 'btn')" title="Xuống">▼</button>
-                </div>
-
-                <div><input type="text" placeholder="ID" class="b-id" value="${btnData.id || ''}" oninput="saveData()"></div>
-                <div><input type="text" placeholder="Label" class="b-label" value="${btnData.label || ''}" oninput="onLabelChange(this, 'btn')"></div>
-                <div style="display:flex; gap:2px;">
-                    <select class="b-img-type" style="width: 65px; font-size:0.8em;" onchange="this.nextElementSibling.placeholder = this.value === 'image' ? 'File name' : 'Mso Name'; saveData();">
-                        <option value="imageMso" ${!isCustom ? 'selected' : ''}>Mso</option>
-                        <option value="image" ${isCustom ? 'selected' : ''}>Custom</option>
-                    </select>
-                    <input type="text" placeholder="${isCustom ? 'File name' : 'Mso Name'}" class="b-img-val" value="${imgVal}" oninput="saveData()">
-                </div>
-                <div><input type="text" placeholder="Sub Name" class="b-act" value="${btnData.onAction || ''}" oninput="saveData()"></div>
-                <div>
-                    <select class="b-size" onchange="saveData()">
-                        <option value="normal" ${btnData.size !== 'large' ? 'selected' : ''}>Normal</option>
-                        <option value="large" ${btnData.size === 'large' ? 'selected' : ''}>Large</option>
-                    </select>
-                </div>
-                <button class="btn-del" onclick="this.parentElement.remove(); saveData();" title="Xóa nút">🗑</button>
-            </div>
-        `;
-    }
-
-    function renderGroupHTML(groupData = {}) {
-        let btnsHTML = '';
-        if(groupData.buttons && groupData.buttons.length > 0) {
-            groupData.buttons.forEach(b => btnsHTML += renderBtnHTML(b));
-        }
-        const div = document.createElement('div');
-        div.className = 'group-block';
-        div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-                <div style="display:flex; gap:10px; align-items:center; width: 100%;">
-                    <div class="move-controls">
-                        <button class="btn-move" onclick="moveUp(this, 'grp')" title="Lên">▲</button>
-                        <button class="btn-move" onclick="moveDown(this, 'grp')" title="Xuống">▼</button>
-                    </div>
-                    <div style="width:35%"><label>Group ID</label><input type="text" class="g-id" value="${groupData.id || ''}" oninput="saveData()"></div>
-                    <div style="width:35%"><label>Group Label</label><input type="text" class="g-label" value="${groupData.label || ''}" oninput="onLabelChange(this, 'grp')"></div>
-                    <button class="btn-del" style="height:35px; margin-left:auto;" onclick="this.closest('.group-block').remove(); saveData();">Xóa Group</button>
-                </div>
+    function renderBtnItem(d={}) {
+        let isCus = d.imgType === 'image';
+        return `<div class="btn-item">
+            <div style="display:flex; flex-direction:column;"><button class="btn-move" onclick="move(this,'up')">▲</button><button class="btn-move" onclick="move(this,'down')">▼</button></div>
+            
+            <input type="text" class="b-id" value="${d.id||''}" placeholder="auto..." oninput="saveData()">
+            <input type="text" class="b-label" value="${d.label||''}" oninput="autoId(this,'btn')">
+            
+            <div style="display:flex;gap:2px;">
+                <select class="b-img-type" style="width:80px;" onchange="saveData()"><option value="imageMso" ${!isCus?'selected':''}>Mso</option><option value="image" ${isCus?'selected':''}>Img</option></select>
+                <input type="text" class="b-img-val" value="${d.imgVal||''}" oninput="saveData()">
             </div>
             
-            <div class="btns-container">
-                <div style="display:grid; grid-template-columns: 30px 1fr 1.2fr 1.6fr 1fr 0.8fr 30px; gap:5px; font-size:0.75em; font-weight:bold; color:#666; margin-bottom:5px; padding-left:5px;">
-                    <span>Pos</span><span>ID</span><span>LABEL</span><span>ICON</span><span>ON ACTION</span><span>SIZE</span><span></span>
+            <input type="text" class="b-act" value="${d.onAction||''}" oninput="saveData()">
+            
+            <select class="b-size" onchange="saveData()">
+                <option value="normal" ${d.size!=='large'?'selected':''}>Normal</option>
+                <option value="large" ${d.size==='large'?'selected':''}>Large</option>
+            </select>
+            
+            <button class="btn-del" onclick="del(this)" title="Xóa nút">✕</button>
+        </div>`;
+    }
+
+    function renderGroupItem(d={}) {
+        let h = ''; if(d.buttons) d.buttons.forEach(b => h+=renderBtnItem(b));
+        const div = document.createElement('div'); div.className = 'group-block';
+        div.innerHTML = `
+            <div style="display:flex; gap:10px; margin-bottom:10px; align-items:flex-end;">
+                <div style="display:flex; flex-direction:column; width:20px; margin-bottom:2px;">
+                    <button class="btn-move" onclick="move(this,'up',true)">▲</button>
+                    <button class="btn-move" onclick="move(this,'down',true)">▼</button>
                 </div>
-                ${btnsHTML}
+                <div style="flex:1"><label>Group ID</label><input type="text" class="g-id" value="${d.id||''}" oninput="saveData()"></div>
+                <div style="flex:1.5"><label>Group Label</label><input type="text" class="g-label" value="${d.label||''}" oninput="autoId(this,'grp')"></div>
+                <button class="btn-del" style="color:#d93025; border:1px solid #d93025; padding:5px 10px; border-radius:3px; margin-bottom:2px;" onclick="del(this,true)">Xóa Group</button>
             </div>
-            <button class="btn-add-btn" onclick="addButtonToGroup(this)">+ Thêm Nút Bấm</button>
+            
+            <div class="btn-header">
+                <span></span>
+                <span>ID</span>
+                <span>Label</span>
+                <span>Icon (Loại + Tên)</span>
+                <span>Sub</span>
+                <span>Size</span>
+                <span></span>
+            </div>
+
+            <div class="btns-container">${h}</div>
+            <button class="btn-add" onclick="addBtn(this)">+ Thêm Nút Bấm</button>
         `;
         return div;
     }
 
-    function addGroup() {
-        container.appendChild(renderGroupHTML({}));
-        const editor = document.querySelector('.editor-panel');
-        editor.scrollTop = editor.scrollHeight;
-        saveData();
-    }
-
-    function addButtonToGroup(btnElement) {
-        const btnsContainer = btnElement.previousElementSibling;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = renderBtnHTML({});
-        btnsContainer.appendChild(tempDiv.firstElementChild);
-        saveData();
-    }
-
-    // --- 4. LOGIC LƯU TRỮ & IMPORT/EXPORT ---
-    function saveData() {
-        const data = {
-            tabId: document.getElementById('tabId').value,
-            tabLabel: document.getElementById('tabLabel').value,
-            groups: []
-        };
-
-        document.querySelectorAll('.group-block').forEach(g => {
-            const groupObj = {
-                id: g.querySelector('.g-id').value,
-                label: g.querySelector('.g-label').value,
-                buttons: []
-            };
-
-            g.querySelectorAll('.btn-item').forEach(b => {
-                // Kiểm tra null check cho chắc chắn
-                const imgTypeEl = b.querySelector('.b-img-type');
-                if(!imgTypeEl) return; // Bỏ qua nếu là header
-
-                const bImgType = imgTypeEl.value;
-                const bImgVal = b.querySelector('.b-img-val').value;
-                
-                groupObj.buttons.push({
-                    id: b.querySelector('.b-id').value,
-                    label: b.querySelector('.b-label').value,
-                    onAction: b.querySelector('.b-act').value,
-                    size: b.querySelector('.b-size').value,
-                    imageMso: bImgType === 'imageMso' ? bImgVal : null,
-                    image: bImgType === 'image' ? bImgVal : null
-                });
-            });
-            data.groups.push(groupObj);
-        });
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-
-    function loadData() {
-        const json = localStorage.getItem(STORAGE_KEY);
-        if (!json) {
-            container.appendChild(renderGroupHTML({id: 'grpMau', label: 'Group Mẫu', buttons: [{id: 'btnMau', label: 'Nút Mẫu', size: 'large', imageMso: 'HappyFace'}]}));
-            return;
-        }
-        try {
-            const data = JSON.parse(json);
-            document.getElementById('tabId').value = data.tabId || 'tabCustom';
-            document.getElementById('tabLabel').value = data.tabLabel || 'My Tools';
-            container.innerHTML = '';
-            if (data.groups) {
-                data.groups.forEach(g => container.appendChild(renderGroupHTML(g)));
-            }
-        } catch (e) { console.error(e); }
-    }
-
-    function resetData() {
-        if(confirm("XÓA HẾT và làm lại từ đầu?")) {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();
-        }
-    }
-
-    function generateXML() {
-        saveData();
-        const tabId = document.getElementById('tabId').value || 'tabCustom';
-        const tabLabel = document.getElementById('tabLabel').value || 'My Tools';
-        
-        let xml = `<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">\n  <ribbon>\n    <tabs>\n`;
-        xml += `      <tab id="${tabId}" label="${tabLabel}" insertBeforeMso="TabHome">\n`;
-
-        document.querySelectorAll('.group-block').forEach(g => {
-            const gId = g.querySelector('.g-id').value;
-            if(!gId) return;
-            xml += `        <group id="${gId}" label="${g.querySelector('.g-label').value}">\n`;
-            
-            g.querySelectorAll('.btn-item').forEach(b => {
-                const bId = b.querySelector('.b-id').value;
-                if(!bId) return;
-                const bImgType = b.querySelector('.b-img-type').value;
-                const bImgVal = b.querySelector('.b-img-val').value;
-                let attrStr = ` id="${bId}" label="${b.querySelector('.b-label').value}"`;
-                if(bImgVal) attrStr += ` ${bImgType}="${bImgVal}"`;
-                if(b.querySelector('.b-size').value === 'large') attrStr += ` size="large"`;
-                if(b.querySelector('.b-act').value) attrStr += ` onAction="${b.querySelector('.b-act').value}"`;
-                xml += `          <button${attrStr} />\n`;
-            });
-            xml += `        </group>\n`;
-        });
-        xml += `      </tab>\n    </tabs>\n  </ribbon>\n</customUI>`;
-        document.getElementById('xmlContent').value = xml;
-    }
-
-    function importXML() {
-        const xmlText = document.getElementById('xmlContent').value.trim();
-        if(!xmlText) { alert("Thiếu mã XML!"); return; }
-        try {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(xmlText, "text/xml");
-            if (doc.querySelector("parsererror")) { alert("XML lỗi."); return; }
-
-            container.innerHTML = '';
-            const tabNode = doc.querySelector('tab');
-            if(tabNode) {
-                document.getElementById('tabId').value = tabNode.getAttribute('id') || 'tabCustom';
-                document.getElementById('tabLabel').value = tabNode.getAttribute('label') || 'My Tools';
-            }
-            const groups = doc.querySelectorAll('group');
-            groups.forEach(gNode => {
-                const groupData = {
-                    id: gNode.getAttribute('id'), label: gNode.getAttribute('label'), buttons: []
-                };
-                gNode.querySelectorAll('button').forEach(bNode => {
-                    groupData.buttons.push({
-                        id: bNode.getAttribute('id'),
-                        label: bNode.getAttribute('label'),
-                        onAction: bNode.getAttribute('onAction'),
-                        size: bNode.getAttribute('size') || 'normal',
-                        imageMso: bNode.getAttribute('imageMso'),
-                        image: bNode.getAttribute('image')
+    function renderPreview() {
+        const d = getData();
+        const area = document.getElementById('previewArea');
+        let html = `<div class="ribbon-tab-bar"><span>File</span><span>Home</span><div class="ribbon-tab-active">${d.tabLabel}</div></div><div class="ribbon-body">`;
+        d.groups.forEach(g => {
+            html += `<div class="r-group"><div class="r-group-content">`;
+            let stack = [];
+            const flush = () => {
+                if(stack.length>0) {
+                    html+=`<div class="r-column">`;
+                    stack.forEach(b=>{
+                        let name = (b.imgVal||b.label||'X').substring(0,2).toUpperCase();
+                        let bg = stringToColor(name);
+                        let icon = `https://ui-avatars.com/api/?name=${name}&background=${bg}&color=fff&size=32&length=2&font-size=0.4`;
+                        html+=`<div class="r-btn-normal" title="${b.label}"><img src="${icon}"><span>${b.label}</span></div>`;
                     });
-                });
-                container.appendChild(renderGroupHTML(groupData));
+                    html+=`</div>`; stack=[];
+                }
+            };
+            g.buttons.forEach(b => {
+                if(b.size==='large') {
+                    flush();
+                    let name = (b.imgVal||b.label||'X').substring(0,2).toUpperCase();
+                    let bg = stringToColor(name);
+                    let icon = `https://ui-avatars.com/api/?name=${name}&background=${bg}&color=fff&size=64&length=2&font-size=0.4`;
+                    html+=`<div class="r-btn-large" title="${b.label}"><img src="${icon}"><span>${b.label}</span></div>`;
+                } else {
+                    stack.push(b); if(stack.length>=3) flush();
+                }
             });
-            saveData();
-            alert("Đã nhập thành công!");
-        } catch (e) { alert("Lỗi: " + e.message); }
+            flush();
+            html += `</div><div class="r-group-label">${g.label}</div></div>`;
+        });
+        html += `</div>`;
+        area.innerHTML = html;
     }
 
-    document.getElementById('tabId').addEventListener('input', saveData);
-    document.getElementById('tabLabel').addEventListener('input', saveData);
-    window.onload = loadData;
+    function addGroup() { container.appendChild(renderGroupItem({})); saveData(); }
+    function addBtn(el) { el.previousElementSibling.insertAdjacentHTML('beforeend', renderBtnItem({})); saveData(); }
+    function del(el, isGrp) { if(confirm('Xóa?')) { el.closest(isGrp?'.group-block':'.btn-item').remove(); saveData(); } }
+    function move(el, dir, isGrp) {
+        let it = el.closest(isGrp?'.group-block':'.btn-item');
+        let tg = dir==='up'?it.previousElementSibling:it.nextElementSibling;
+        if(tg && tg.className===it.className) { dir==='up'?it.parentNode.insertBefore(it,tg):it.parentNode.insertBefore(tg,it); saveData(); }
+    }
+    function autoId(el, type) {
+        let p = el.closest(type==='btn'?'.btn-item':'.group-block');
+        let t = p.querySelector(type==='btn'?'.b-id':'.g-id');
+        let pre = type==='btn'?'btn':'grp';
+        if(!t.value || t.value.startsWith(pre)) t.value=convertToId(el.value,pre);
+        saveData();
+    }
+    function stringToColor(str) { let h=0;for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);let c=(h&0x00FFFFFF).toString(16).toUpperCase();return "00000".substring(0,6-c.length)+c; }
+    
+    function generateXML() {
+        saveData(); let d=getData();
+        let x=`<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">\n  <ribbon>\n    <tabs>\n      <tab id="${d.tabId}" label="${d.tabLabel}" insertBeforeMso="TabHome">\n`;
+        d.groups.forEach(g=>{
+            if(!g.id)return; x+=`        <group id="${g.id}" label="${g.label}">\n`;
+            g.buttons.forEach(b=>{
+                if(!b.id)return; let a=` id="${b.id}" label="${b.label}"`;
+                if(b.imgVal) a+=` ${b.imgType}="${b.imgVal}"`;
+                if(b.size==='large') a+=` size="large"`;
+                if(b.onAction) a+=` onAction="${b.onAction}"`;
+                x+=`          <button${a} />\n`;
+            }); x+=`        </group>\n`;
+        }); x+=`      </tab>\n    </tabs>\n  </ribbon>\n</customUI>`;
+        document.getElementById('xmlContent').value=x;
+    }
+    function importXML() {
+        let x=document.getElementById('xmlContent').value.trim(); if(!x)return alert('Code?');
+        try{
+            let dp=new DOMParser().parseFromString(x,"text/xml"); if(dp.querySelector("parsererror"))throw new Error("Err");
+            container.innerHTML=''; 
+            let t=dp.querySelector('tab'); if(t){document.getElementById('tabId').value=t.getAttribute('id');document.getElementById('tabLabel').value=t.getAttribute('label');}
+            dp.querySelectorAll('group').forEach(g=>{
+                let grp={id:g.getAttribute('id'),label:g.getAttribute('label'),buttons:[]};
+                g.querySelectorAll('button').forEach(b=>{
+                    grp.buttons.push({id:b.getAttribute('id'),label:b.getAttribute('label'),imgType:b.getAttribute('image')?'image':'imageMso',imgVal:b.getAttribute('image')||b.getAttribute('imageMso'),onAction:b.getAttribute('onAction'),size:b.getAttribute('size')});
+                }); container.appendChild(renderGroupItem(grp));
+            }); saveData(); alert('OK'); switchTab('preview');
+        }catch(e){alert(e.message);}
+    }
+    function resetData(){if(confirm('Reset?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}
 
+    window.onload=function(){
+        let j=localStorage.getItem(STORAGE_KEY);
+        if(j){let d=JSON.parse(j);document.getElementById('tabId').value=d.tabId;document.getElementById('tabLabel').value=d.tabLabel;d.groups.forEach(g=>container.appendChild(renderGroupItem(g)));}
+        else{container.appendChild(renderGroupItem({id:'grpDemo',label:'Demo',buttons:[{id:'b1',label:'Big Button',size:'large',imgVal:'HappyFace'},{id:'b2',label:'Small 1',size:'normal',imgVal:'Cut'}]}));}
+        renderPreview();
+    }
 </script>
 </body>
 </html>
