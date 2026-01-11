@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ribbon XML Builder (Auto Save)</title>
+    <title>Ribbon XML Builder (Sortable)</title>
     <style>
-        :root { --primary: #217346; --bg: #f3f2f1; --border: #c8c6c4; --blue: #0078d4; --red: #d93025; }
+        :root { --primary: #217346; --bg: #f3f2f1; --border: #c8c6c4; --blue: #0078d4; --red: #d93025; --gray: #666; }
         
         body { 
             font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; 
             display: flex; gap: 15px; height: 100vh; box-sizing: border-box; overflow: hidden; 
         }
         
-        /* CỘT TRÁI */
+        /* LAYOUT */
         .editor-panel { 
             flex: 1; background: white; padding: 20px; border-radius: 8px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column; border: 1px solid var(--border);
         }
-        
-        /* CỘT PHẢI */
-        .code-panel { 
-            flex: 1; display: flex; flex-direction: column; gap: 10px; height: 100%;
-        }
+        .code-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; height: 100%; }
         
         textarea { 
             flex: 1; width: 100%; font-family: 'Consolas', monospace; padding: 15px; 
@@ -29,10 +25,18 @@
             background: #1e1e1e; color: #dcdcdc; font-size: 14px; line-height: 1.5; box-sizing: border-box;
         }
         
-        /* UI Elements */
-        .group-block { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #fff; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .btn-item { display: grid; grid-template-columns: 1fr 1.2fr 1.6fr 1fr 0.8fr auto; gap: 8px; margin-bottom: 8px; align-items: center; padding: 8px; background: #f8f9fa; border: 1px solid #eee; border-radius: 4px; }
+        /* UI ELEMENTS */
+        .group-block { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #fff; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.3s; }
+        .group-block:hover { background: #fafafa; }
         
+        .btn-item { 
+            display: grid; grid-template-columns: 30px 1fr 1.2fr 1.6fr 1fr 0.8fr 30px; gap: 5px; 
+            margin-bottom: 5px; align-items: center; padding: 6px; background: #f8f9fa; 
+            border: 1px solid #eee; border-radius: 4px; 
+        }
+        .btn-item:hover { border-color: #ccc; }
+        
+        /* INPUTS & BUTTONS */
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 0.9em; }
         input:focus { border-color: var(--blue); outline: none; }
 
@@ -41,8 +45,13 @@
 
         .btn-add-group { background: var(--primary); color: white; margin-top: 10px; width: 100%; padding: 10px; }
         .btn-add-btn { background: #fff; border: 1px dashed var(--blue); color: var(--blue); font-size: 0.85em; margin-top: 5px; width: 100%; }
-        .btn-del { background: var(--red); color: white; padding: 6px 10px; font-size: 0.8em;}
+        .btn-del { background: var(--red); color: white; padding: 6px; font-size: 0.8em; min-width: 30px;}
         
+        /* MOVE CONTROLS */
+        .move-controls { display: flex; flex-direction: column; gap: 2px; }
+        .btn-move { padding: 0; width: 20px; height: 14px; font-size: 10px; line-height: 10px; background: #e1dfdd; color: #333; border: 1px solid #ccc; }
+        .btn-move:hover { background: var(--blue); color: white; border-color: var(--blue); }
+
         .btn-action-row { display: flex; gap: 10px; margin-bottom: 5px; }
         .btn-gen { background: var(--blue); color: white; flex: 2; padding: 12px; font-size: 1.1em; }
         .btn-reverse { background: #d83b01; color: white; flex: 1; padding: 12px; font-size: 1.1em; }
@@ -54,9 +63,6 @@
         .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .link-tool { text-decoration: none; background: #fff; padding: 6px 12px; border-radius: 20px; color: #333; font-size: 0.85em; font-weight: bold; border: 1px solid #ccc; display: flex; align-items: center; gap: 5px; }
         
-        .toast { position: fixed; bottom: 20px; left: 20px; background: #333; color: #fff; padding: 10px 20px; border-radius: 5px; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 999; }
-
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
@@ -89,12 +95,10 @@
         <textarea id="xmlContent" placeholder="Paste mã XML vào đây để dịch ngược, hoặc bấm Xuất Code để lấy mã..."></textarea>
     </div>
 
-    <div id="toast" class="toast">Đã lưu cấu hình!</div>
-
 <script>
-    const STORAGE_KEY = 'ribbon_tool_data_v2';
+    const STORAGE_KEY = 'ribbon_tool_data_v3'; // Đổi key mới để tránh xung đột
 
-    // --- 1. TIỆN ÍCH ---
+    // --- 1. TIỆN ÍCH CHUỖI ---
     function convertToId(str, prefix) {
         if (!str) return "";
         str = str.toLowerCase()
@@ -108,7 +112,6 @@
         return prefix + str;
     }
 
-    // Sự kiện khi gõ Label -> Tự điền ID
     function onLabelChange(input, type) {
         const parent = input.closest(type === 'btn' ? '.btn-item' : '.group-block');
         const idInput = parent.querySelector(type === 'btn' ? '.b-id' : '.g-id');
@@ -116,10 +119,30 @@
         if(idInput.value === "" || idInput.value.startsWith(prefix)) {
              idInput.value = convertToId(input.value, prefix);
         }
-        saveData(); // Lưu ngay khi gõ
+        saveData();
     }
 
-    // --- 2. RENDER GIAO DIỆN ---
+    // --- 2. LOGIC DI CHUYỂN (MỚI) ---
+    function moveUp(btn, type) {
+        const item = btn.closest(type === 'grp' ? '.group-block' : '.btn-item');
+        const prevItem = item.previousElementSibling;
+        // Kiểm tra xem phần tử phía trước có phải là item cùng loại không
+        if (prevItem && prevItem.classList.contains(type === 'grp' ? 'group-block' : 'btn-item')) {
+            item.parentNode.insertBefore(item, prevItem);
+            saveData();
+        }
+    }
+
+    function moveDown(btn, type) {
+        const item = btn.closest(type === 'grp' ? '.group-block' : '.btn-item');
+        const nextItem = item.nextElementSibling;
+        if (nextItem && nextItem.classList.contains(type === 'grp' ? 'group-block' : 'btn-item')) {
+            item.parentNode.insertBefore(nextItem, item);
+            saveData();
+        }
+    }
+
+    // --- 3. RENDER GIAO DIỆN ---
     const container = document.getElementById('groupsContainer');
 
     function renderBtnHTML(btnData = {}) {
@@ -130,6 +153,11 @@
 
         return `
             <div class="btn-item">
+                <div class="move-controls">
+                    <button class="btn-move" onclick="moveUp(this, 'btn')" title="Lên">▲</button>
+                    <button class="btn-move" onclick="moveDown(this, 'btn')" title="Xuống">▼</button>
+                </div>
+
                 <div><input type="text" placeholder="ID" class="b-id" value="${btnData.id || ''}" oninput="saveData()"></div>
                 <div><input type="text" placeholder="Label" class="b-label" value="${btnData.label || ''}" oninput="onLabelChange(this, 'btn')"></div>
                 <div style="display:flex; gap:2px;">
@@ -160,14 +188,20 @@
         div.className = 'group-block';
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-                <div style="width:40%"><label>Group ID</label><input type="text" class="g-id" value="${groupData.id || ''}" oninput="saveData()"></div>
-                <div style="width:40%"><label>Group Label</label><input type="text" class="g-label" value="${groupData.label || ''}" oninput="onLabelChange(this, 'grp')"></div>
-                <button class="btn-del" style="height:35px;" onclick="this.closest('.group-block').remove(); saveData();">Xóa Group</button>
+                <div style="display:flex; gap:10px; align-items:center; width: 100%;">
+                    <div class="move-controls">
+                        <button class="btn-move" onclick="moveUp(this, 'grp')" title="Lên">▲</button>
+                        <button class="btn-move" onclick="moveDown(this, 'grp')" title="Xuống">▼</button>
+                    </div>
+                    <div style="width:35%"><label>Group ID</label><input type="text" class="g-id" value="${groupData.id || ''}" oninput="saveData()"></div>
+                    <div style="width:35%"><label>Group Label</label><input type="text" class="g-label" value="${groupData.label || ''}" oninput="onLabelChange(this, 'grp')"></div>
+                    <button class="btn-del" style="height:35px; margin-left:auto;" onclick="this.closest('.group-block').remove(); saveData();">Xóa Group</button>
+                </div>
             </div>
-            <label style="margin-top:10px;">DANH SÁCH BUTTONS</label>
+            
             <div class="btns-container">
-                <div style="display:grid; grid-template-columns: 1fr 1.2fr 1.6fr 1fr 0.8fr auto; gap:8px; font-size:0.75em; font-weight:bold; color:#666; margin-bottom:5px; padding-left:5px;">
-                    <span>ID</span><span>LABEL</span><span>ICON</span><span>ON ACTION</span><span>SIZE</span><span></span>
+                <div style="display:grid; grid-template-columns: 30px 1fr 1.2fr 1.6fr 1fr 0.8fr 30px; gap:5px; font-size:0.75em; font-weight:bold; color:#666; margin-bottom:5px; padding-left:5px;">
+                    <span>Pos</span><span>ID</span><span>LABEL</span><span>ICON</span><span>ON ACTION</span><span>SIZE</span><span></span>
                 </div>
                 ${btnsHTML}
             </div>
@@ -191,7 +225,7 @@
         saveData();
     }
 
-    // --- 3. LOGIC LƯU TRỮ (LOCAL STORAGE) ---
+    // --- 4. LOGIC LƯU TRỮ & IMPORT/EXPORT ---
     function saveData() {
         const data = {
             tabId: document.getElementById('tabId').value,
@@ -207,7 +241,11 @@
             };
 
             g.querySelectorAll('.btn-item').forEach(b => {
-                const bImgType = b.querySelector('.b-img-type').value;
+                // Kiểm tra null check cho chắc chắn
+                const imgTypeEl = b.querySelector('.b-img-type');
+                if(!imgTypeEl) return; // Bỏ qua nếu là header
+
+                const bImgType = imgTypeEl.value;
                 const bImgVal = b.querySelector('.b-img-val').value;
                 
                 groupObj.buttons.push({
@@ -223,45 +261,34 @@
         });
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        
-        // Hiệu ứng báo đã lưu (nhẹ)
-        /* const toast = document.getElementById('toast');
-        toast.style.opacity = 1;
-        setTimeout(() => toast.style.opacity = 0, 1000); */
     }
 
     function loadData() {
         const json = localStorage.getItem(STORAGE_KEY);
         if (!json) {
-            // Dữ liệu mặc định nếu chưa có gì lưu
             container.appendChild(renderGroupHTML({id: 'grpMau', label: 'Group Mẫu', buttons: [{id: 'btnMau', label: 'Nút Mẫu', size: 'large', imageMso: 'HappyFace'}]}));
             return;
         }
-
         try {
             const data = JSON.parse(json);
             document.getElementById('tabId').value = data.tabId || 'tabCustom';
             document.getElementById('tabLabel').value = data.tabLabel || 'My Tools';
-            
-            container.innerHTML = ''; // Xóa trắng trước khi render
+            container.innerHTML = '';
             if (data.groups) {
                 data.groups.forEach(g => container.appendChild(renderGroupHTML(g)));
             }
-        } catch (e) {
-            console.error("Lỗi load data:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function resetData() {
-        if(confirm("Bạn có chắc chắn muốn XÓA HẾT dữ liệu và làm lại từ đầu không?")) {
+        if(confirm("XÓA HẾT và làm lại từ đầu?")) {
             localStorage.removeItem(STORAGE_KEY);
-            location.reload(); // Tải lại trang để về mặc định
+            location.reload();
         }
     }
 
-    // --- 4. LOGIC IMPORT / EXPORT (Đã tích hợp saveData) ---
     function generateXML() {
-        saveData(); // Lưu trước khi xuất
+        saveData();
         const tabId = document.getElementById('tabId').value || 'tabCustom';
         const tabLabel = document.getElementById('tabLabel').value || 'My Tools';
         
@@ -270,59 +297,46 @@
 
         document.querySelectorAll('.group-block').forEach(g => {
             const gId = g.querySelector('.g-id').value;
-            const gLabel = g.querySelector('.g-label').value;
             if(!gId) return;
-
-            xml += `        <group id="${gId}" label="${gLabel}">\n`;
+            xml += `        <group id="${gId}" label="${g.querySelector('.g-label').value}">\n`;
+            
             g.querySelectorAll('.btn-item').forEach(b => {
                 const bId = b.querySelector('.b-id').value;
                 if(!bId) return;
-                
-                const bLabel = b.querySelector('.b-label').value;
-                const bAct = b.querySelector('.b-act').value;
-                const bSize = b.querySelector('.b-size').value;
                 const bImgType = b.querySelector('.b-img-type').value;
                 const bImgVal = b.querySelector('.b-img-val').value;
-
-                let attrStr = ` id="${bId}" label="${bLabel}"`;
+                let attrStr = ` id="${bId}" label="${b.querySelector('.b-label').value}"`;
                 if(bImgVal) attrStr += ` ${bImgType}="${bImgVal}"`;
-                if(bSize === 'large') attrStr += ` size="large"`;
-                if(bAct) attrStr += ` onAction="${bAct}"`;
-
+                if(b.querySelector('.b-size').value === 'large') attrStr += ` size="large"`;
+                if(b.querySelector('.b-act').value) attrStr += ` onAction="${b.querySelector('.b-act').value}"`;
                 xml += `          <button${attrStr} />\n`;
             });
             xml += `        </group>\n`;
         });
-
         xml += `      </tab>\n    </tabs>\n  </ribbon>\n</customUI>`;
         document.getElementById('xmlContent').value = xml;
     }
 
     function importXML() {
         const xmlText = document.getElementById('xmlContent').value.trim();
-        if(!xmlText) { alert("Vui lòng dán mã XML vào ô bên phải!"); return; }
-
+        if(!xmlText) { alert("Thiếu mã XML!"); return; }
         try {
             const parser = new DOMParser();
             const doc = parser.parseFromString(xmlText, "text/xml");
-            if (doc.querySelector("parsererror")) { alert("Lỗi: Mã XML không hợp lệ."); return; }
+            if (doc.querySelector("parsererror")) { alert("XML lỗi."); return; }
 
-            container.innerHTML = ''; 
+            container.innerHTML = '';
             const tabNode = doc.querySelector('tab');
             if(tabNode) {
                 document.getElementById('tabId').value = tabNode.getAttribute('id') || 'tabCustom';
                 document.getElementById('tabLabel').value = tabNode.getAttribute('label') || 'My Tools';
             }
-
             const groups = doc.querySelectorAll('group');
             groups.forEach(gNode => {
                 const groupData = {
-                    id: gNode.getAttribute('id'),
-                    label: gNode.getAttribute('label'),
-                    buttons: []
+                    id: gNode.getAttribute('id'), label: gNode.getAttribute('label'), buttons: []
                 };
-                const btns = gNode.querySelectorAll('button');
-                btns.forEach(bNode => {
+                gNode.querySelectorAll('button').forEach(bNode => {
                     groupData.buttons.push({
                         id: bNode.getAttribute('id'),
                         label: bNode.getAttribute('label'),
@@ -334,20 +348,13 @@
                 });
                 container.appendChild(renderGroupHTML(groupData));
             });
-            
-            saveData(); // Lưu lại ngay sau khi import thành công
-            alert("Đã nhập dữ liệu và lưu thành công!");
-
-        } catch (e) {
-            alert("Đã xảy ra lỗi: " + e.message);
-        }
+            saveData();
+            alert("Đã nhập thành công!");
+        } catch (e) { alert("Lỗi: " + e.message); }
     }
 
-    // Tab Inputs cũng cần lưu khi đổi
     document.getElementById('tabId').addEventListener('input', saveData);
     document.getElementById('tabLabel').addEventListener('input', saveData);
-
-    // Chạy khi mở trang
     window.onload = loadData;
 
 </script>
