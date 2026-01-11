@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ribbon XML Builder</title>
+    <title>Ribbon XML Builder (Adjusted Layout)</title>
     <style>
         :root { --primary: #217346; --bg: #f3f2f1; --border: #c8c6c4; --blue: #0078d4; --red: #d93025; }
         
@@ -34,11 +34,11 @@
         .tab-header { display: flex; background: #f3f2f1; border-bottom: 1px solid #ccc; height: 35px; }
         .tab-btn { padding: 0 20px; border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600; color: #666; height: 100%; }
         .tab-btn.active { background: #fff; color: var(--primary); border-top: 3px solid var(--primary); border-bottom: 1px solid #fff; font-weight: 700;}
-        .tab-content { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+        .tab-content { flex: 1; display: none; flex-direction: column; overflow: auto; }
         .tab-content.active { display: flex; }
 
         /* Preview Area */
-        #previewArea { background: #f3f3f3; flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #ccc; overflow-x: auto; }
+        #previewArea { background: #f3f3f3; display: flex; flex-direction: column; border-bottom: 1px solid #ccc; min-width: 100%; width: fit-content; }
         .ribbon-tab-bar { background: #217346; color: white; padding: 0 10px; font-size: 12px; display: flex; align-items: flex-end; height: 30px; gap: 15px; width: 100%; box-sizing: border-box; }
         .ribbon-tab-active { background: #f3f3f3; color: #217346; padding: 6px 15px; font-weight: 600; border-radius: 4px 4px 0 0; margin-bottom: 0; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
         .ribbon-body { background: #f3f3f3; height: 92px; display: flex; padding: 3px 5px 0 5px; box-sizing: border-box; }
@@ -96,6 +96,8 @@
                     <li><strong>ID:</strong> Tự động sinh ra khi nhập Label.</li>
                     <li><strong>Icon:</strong> Chọn loại <em>Mso</em> (Excel có sẵn) hoặc <em>Img</em> (Ảnh riêng). Nhập tên vào ô bên cạnh.</li>
                     <li><strong>Size:</strong> Chọn <em>Large</em> hoặc <em>Normal</em>.</li>
+					<li><strong>XML code:</strong> Post đoạn code (customUI xmln) và chọn Import XML để dịch ngược lại đoạn code.</li>
+					<li><strong></strong> Ý tưởng phát triển bởi Nhất Nguyễn (https://www.thietketudien.vn/).</li>
                 </ul>
             </div>
         </div>
