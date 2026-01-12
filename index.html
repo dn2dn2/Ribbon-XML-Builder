@@ -264,7 +264,7 @@
     
     function generateXML() {
         saveData(); let d=getData();
-        let x=`<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">\n  <ribbon>\n    <tabs>\n      <tab id="${d.tabId}" label="${d.tabLabel}" insertBeforeMso="TabHome">\n`;
+        let x=`<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">\n  <ribbon>\n    <tabs>\n      <tab id="${d.tabId}" label="${d.tabLabel}">\n`;
         d.groups.forEach(g=>{
             if(!g.id)return; x+=`        <group id="${g.id}" label="${g.label}">\n`;
             g.buttons.forEach(b=>{
@@ -296,7 +296,7 @@
     window.onload=function(){
         let j=localStorage.getItem(STORAGE_KEY);
         if(j){let d=JSON.parse(j);document.getElementById('tabId').value=d.tabId;document.getElementById('tabLabel').value=d.tabLabel;d.groups.forEach(g=>container.appendChild(renderGroupItem(g)));}
-        else{container.appendChild(renderGroupItem({id:'grpDemo',label:'Demo',buttons:[{id:'b1',label:'Big Button',size:'large',imgVal:'HappyFace'},{id:'b2',label:'Small 1',size:'normal',imgVal:'Cut'}]}));}
+        else{container.appendChild(renderGroupItem({id:'grpDemo',label:'Demo',buttons:[{id:'',label:'Big Button',size:'large',imgVal:'HappyFace'},{id:'',label:'Small 1',size:'normal',imgVal:'Cut'}]}));}
         renderPreview();
     }
 </script>
